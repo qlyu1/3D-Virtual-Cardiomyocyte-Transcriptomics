@@ -1,0 +1,61 @@
+Benchmark notes: dependencies, vendored packages, and licenses
+================================================================
+
+`run_benchmark_methods.py` compares HiDTW (referred to as "3dOT" in this
+script for historical reasons) against four public spatial alignment methods:
+PASTE2, SLAT, CAST, and Spateo.
+
+The script does not bundle the third-party methods themselves; each one must
+be installed or cloned separately as described below.
+
+
+1. Pip dependencies (in addition to the top-level requirements.txt)
+--------------------------------------------------------------------
+
+    pip install scanpy anndata
+    pip install paste2                    # PASTE2
+    pip install scSLAT                    # SLAT
+    pip install spateo-release            # Spateo
+
+CAST and 3d-OT are distributed only via source; see (2) below.
+
+
+2. Vendored / cloned packages (placed beside this file)
+--------------------------------------------------------------------
+
+    benchmark/
+        3d-OT/          <- git clone 
+        CAST/           <- git clone 
+
+
+3. Data layout
+--------------------------------------------------------------------
+
+Default --data-root is `benchmark/data`. The script reads:
+
+    <data-root>/Tile<NNN>/<NNN>_S<SS>_features.csv        (contour features)
+    <data-root>/<NNN>/expression-T<NNN>-S<SS>.csv         (per-cell UMI, tab-sep)
+
+To run on the bundled demo tile:
+
+    python run_benchmark_methods.py \
+        --tile-prefixes 046 \
+        --data-root ../demo_data \
+        --methods PASTE2 SLAT CAST Spateo
+
+
+4. Licensing
+--------------------------------------------------------------------
+
+All third-party methods retain their own licenses. Verify against each
+upstream repo before redistribution:
+
+    PASTE2  - MIT
+    scSLAT  - MIT
+    CAST    - check upstream
+    Spateo  - BSD-3-Clause
+    3d-OT   - check upstream
+
+The wrapper code in `run_benchmark_methods.py` is released under the same
+license as the rest of this repository (see ../LICENSE) and contains no
+copied source from the methods above; it only calls their public APIs.

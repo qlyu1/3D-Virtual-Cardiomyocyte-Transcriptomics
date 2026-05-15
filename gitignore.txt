@@ -1,0 +1,23 @@
+# System files
+.DS_Store
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+
+# Jupyter notebook
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+
+# R files
+.Rhistory
+.RData
+.Rproj.user/
+
+# AppleDouble / macOS metadata files on non-HFS volumes (e.g. SMB/exFAT)
+# Remove existing: find . -type f -name '._*' -delete
+._*
+**/._*

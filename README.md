@@ -38,11 +38,17 @@ exposes the plotting and aggregation helpers used by the tutorial notebook.
 git clone https://github.com/qlyu1/3D-Virtual-Cardiomyocyte-Transcriptomics.git
 cd 3D-Virtual-Cardiomyocyte-Transcriptomics
 conda create -n hidtw python=3.10 -y && conda activate hidtw
-pip install -r requirements.txt
+pip install -r requirements.txt jupyterlab ipykernel
 ```
 
 A CUDA-capable GPU is required: Soft-DTW and Sinkhorn OT both run on the GPU
-and the matcher aborts on CPU. Tested with PyTorch 2.x on CUDA 11.
+and the matcher aborts on CPU. Successfully run on Ubuntu 22.04, Python 3.10,
+PyTorch 2.1.2, CUDA 11.8, one 48 GB vGPU, 25 vCPUs (Intel Xeon Platinum 8470Q),
+and 92 GB RAM; other compatible configurations may also work.
+
+Expected installation time: approximately 15 minutes, including download and
+installation of additional dependencies, excluding image deployment and
+repository/demo-data downloads.
 
 ## Quick start
 
@@ -53,6 +59,11 @@ slices:
 ```bash
 jupyter lab tutorial_HiDTW_demodata_Tile046.ipynb
 ```
+
+For the manual demo, run sections **1–8 → 10b → 11–12**. For Bayesian
+optimisation, run **1–10 → 11–12** instead.
+
+Expected demo runtime: approximately **48 minutes**.
 
 CLI-only run (the matcher discovers data via `glob.glob("Tile*")` in cwd, so
 symlink or copy `demo_data/Tile046` to `./Tile046` first):
@@ -65,6 +76,9 @@ python -m hidtw_pipeline.bayes_opt_margin_v10 \
 
 ## Outputs
 
+Demo outputs in `tutorial_outputs/Tile046/`: `Tile046.csv.gz` (expression),
+`Tile046_meta.csv`, `Tile046_all_tracks_summary.csv`, and QC plots.
+
 | File | Contents |
 |---|---|
 | `{region}_tracks_round_{N}.csv` | per-round track assignments |
@@ -72,6 +86,48 @@ python -m hidtw_pipeline.bayes_opt_margin_v10 \
 | `divisor_cache_{region}.json` | cached Soft-DTW / OT / centroid divisors |
 | `{region}_evaluation_{params}.json` | global score + per-component metrics |
 | `bayes_opt_results_v9_{region}/` | BO trial history + best-parameter directory |
+
+## Run on your own data
+
+Create the following directories in the repository root (replace `123` with
+your tile identifier):
+
+```text
+Tile123/123_S01_features.csv
+Tile123/123_S02_features.csv
+...
+123/expression-T123-S01.csv
+123/expression-T123-S02.csv
+...
+```
+
+Feature files are comma-separated, with one cell per row: `cell_id`,
+`centroid_x`, `centroid_y`, `area`, `aspect_ratio`, and contour pairs
+`x_0`, `y_0`, …, `x_399`, `y_399`, following the demo format. Use centroids in
+a common registered pixel coordinate system and contours centred on each
+cell's centroid. Include semicolon-separated neighbour IDs in `adjacent_cells`
+and their count in `num_adjacent_cells`. Slice numbers are read from filenames.
+
+Expression files are **tab-separated** despite the `.csv` extension and require
+`feature_index`, `cell_label`, `z`, and `total_exp`. Feature cell IDs such as
+`T123S01_0001` must encode the matching slice (`z=1`) and cell label
+(`cell_label=1`) used in the expression files.
+
+In the tutorial's setup cell, replace the demo paths and identifiers with:
+
+```python
+TILE_NAME = "Tile123"
+TILE_PREFIX = "123"
+DEMO_DATA_DIR = WORK_DIR / TILE_NAME
+DEMO_EXPR_DIR = WORK_DIR / TILE_PREFIX
+```
+
+Then follow the same tutorial workflow. For CLI reconstruction and optimisation:
+
+```bash
+python -m hidtw_pipeline.bayes_opt_margin_v10 \
+    --region Tile123 --gpu 0 --n-calls 30 --n-initial 8
+```
 
 ## Method summary
 
